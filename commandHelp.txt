@@ -1,0 +1,6 @@
+BOOKSHELL.C
+
+[help]: displays list commands.
+[exit]: exits bookshelf.c
+[clear]: clears screen
+
