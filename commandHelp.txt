@@ -1,6 +1,10 @@
 BOOKSHELL.C
 
 [help]: displays list commands.
-[exit]: exits bookshelf.c
-[clear]: clears screen
-
+[exit]: exits bookshelf.c.
+[clear]: clears screen.
+[rm <shelf_num>]: removes shelf permanently.
+[create shelf <shelf_name> <owners_name> <shelf_slot>]: creates a shelf in a specified slot.
+[create book <book_name> <book_author> <shelf_slot>]: creates a book in a specified shelf slot given it exists.
+[show shelves]: displays header information for all shelves.
+[show shelf <shelf_slot>]: displasys header and all books for the shelf in order.

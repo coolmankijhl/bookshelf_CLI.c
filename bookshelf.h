@@ -1,62 +1,49 @@
 #include "global.h"
 
-// Assigns strings to values
-typedef enum userCmd{exitCmd, helpCmd, clearCmd, createCmd, book, shelf, showCmd, shelvesCmd, removeCmd} CMD;
-struct commandConversion
-{
-	CMD value;
-	char *str;
-} commandConversion [] = {
-	{exitCmd, "exit"},
-	{helpCmd, "help"},
-	{clearCmd, "clear"},
-	{createCmd, "create"},
-	{book, "book"},
-	{shelf, "shelf"},
-	{showCmd, "show"},
-	{shelvesCmd, "shelves"},
-	{removeCmd, "rm"}
+struct command {
+	char *cmd;
+	void (*function)();
+}; 
 
+struct command conversions1[] = {
+	{"exit", exitCMD},
+	{"help", help},
+	{"create", create},
+	{"clear", clear},
+	{"show", show},
+	{"rm", rm},
+	{NULL, NULL}
 };
 
-// Converts string input to an int
-CMD cmdToInt(char *str)
+struct command createConvert[] = {
+	{"shelf", createShelf},
+	{"book", createBook},
+	{NULL, NULL}
+};
+
+struct command showConvert[] = {
+	{"shelf", showShelf},
+	{"shelves", showShelves},
+	{NULL, NULL}
+};
+
+
+void executeCommand(char* cmdName, struct command* convertLayer)
 {
-	for(int i = 0; i < sizeof(commandConversion) / sizeof(commandConversion[0]); i++)
-		if(strcmp(str, commandConversion[i].str) == 0)
-			return commandConversion[i].value;
+	for (struct command* entry = convertLayer; entry->cmd != NULL; entry++)
+       	{
+		if (strcmp(entry->cmd, cmdName) == 0)
+	       	{
+			entry->function();
+			return;
+		}
+	}
+	printf("Command not recognized, type \"help\" for a list of commands.\n");
 }
 
-// Converts int to a command function
-void commands()
+void clear()
 {
-	int userCmd = cmdToInt(userArgs[0]);
-
-	switch(userCmd)
-	{
-		case(0): //exit
-			exitCMD();
-			break;
-		case(1): //help
-			help();
-			break;
-		case(2): //clear
-			system("clear");
-			break;
-		case(3): //create
-			create();
-			break;	
-		case(6): //show
-			show();
-			break;	
-		case(8): //remove
-			rm();
-			break;
-		default:
-			printf("Command not recognized, type \"help\" for a list of commands.\n");
-			break;
-
-        }
+	system("clear");
 }
 
 void exitCMD()
@@ -91,44 +78,40 @@ void help()
 
 void create()
 {
-	int userCmd = cmdToInt(userArgs[1]);
-
-	switch(userCmd)
-	{
-		case(4): //create book <book name> <author> <shelf slot>
-			addBook(userArgs[2], userArgs[3], &shelves[atoi(userArgs[4])-1]);
-			break;
-		case(5): //create shelf <shelf name> <your name> <shelf slot>
-			addShelf(userArgs[2], userArgs[3], atoi(userArgs[4])-1);
-			break;
-		default:
-			printf("ERROR create: invalid arg\n");
-	}
+	executeCommand(userArgs[1], createConvert);
 }
 
 void show()
 {
-	int userCmd = cmdToInt(userArgs[1]);
+	executeCommand(userArgs[1], showConvert);
+}
 
-	switch(userCmd)
+void createBook()
+{
+	addBook(userArgs[2], userArgs[3], &shelves[atoi(userArgs[4])-1]);
+}
+
+void showShelves()
+{
+	for(int i = 0; i < SHELVES; i++)
 	{
-		case(7): //show shelves
-			for(int i = 0; i < SHELVES; i++)
-				if(shelves[i] != NULL)
-					printf("Shelf %d: %s by %s\n", i+1, shelves[i]->bookName, shelves[i]->author);
-				else
-					printf("Shelf %d: SHELF SLOT EMPTY\n", i+1);
-				break;
-		case(5): //show shelf <n>
-			int n = atoi(userArgs[2]);
-			if(n < SHELVES+1 && n > 0)
-				showShelf(shelves[n-1], n);
-			else
-				printf("ERROR show shelf %d failed: invalid arg\n", n);
-			break;
-		default:
-			printf("ERROR show: invalid arg");
+		if(shelves[i] != NULL)
+			printf("Shelf %d: %s by %s\n", i+1, shelves[i]->bookName, shelves[i]->author);
+		else
+			printf("Shelf %d: SHELF SLOT EMPTY\n", i+1);
 	}
+}
+
+void createShelf()
+{
+	addShelf(userArgs[2], userArgs[3], atoi(userArgs[4])-1);	
+}
+
+void showShelf()
+{
+	int n = atoi(userArgs[2]);
+	if(n < SHELVES+1 && n > 0)
+		displayShelf(shelves[n-1], n);
 }
 
 void rm()

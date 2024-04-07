@@ -26,10 +26,10 @@ int main()
 			token = strtok(NULL, " \n");
 		}
 
-		commands(userArgs);
+		executeCommand(userArgs[0], conversions1);
 
 		strcpy(userInput, "");
-		for(int i = 0; i < SHELVES; i++)
+		for(int i = 0; i < sizeof(userArgs) / sizeof(userArgs[0]); i++)
 			strcpy(userArgs[i], "");
 
 			
@@ -76,11 +76,21 @@ void addShelf(char shelfName[], char username[], int n)
 	if(shelves[n] != NULL)
 		printf("Successfuly created shelf %s by %s in save slot %d\n", bookshelf->bookName, bookshelf->author, n+1);
 	else
-		printf("ERROR create shelf: failed creating shelf");
+		printf("ERROR create shelf: failed creating shelf\n");
 }
 
 void addBook(char bookName[], char author[], stackNode** top)
 {
+	if(bookName[0] == '\0' || bookName[0] == '\0')
+	{
+		printf("ERROR create book: no author or name arg\n");
+		return;
+	}	
+	if(*top == NULL)
+	{
+		printf("ERROR create book: no shelf arg or shelf is doesn't exist\n");
+		return;
+	}
 	push(top);
 
 	(*top)->bookName = (char*)malloc(sizeof(char) * (strlen(bookName) + 1));
@@ -93,7 +103,7 @@ void addBook(char bookName[], char author[], stackNode** top)
 		printf("Successfully created book %s by %s\n", (*top)->bookName, (*top)->author);
 }
 
-void showShelf(stackNode *top, int n)
+void displayShelf(stackNode *top, int n)
 {
 	if(top == NULL)
 	{
