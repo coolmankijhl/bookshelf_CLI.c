@@ -5,6 +5,7 @@ struct command {
 	void (*function)();
 }; 
 
+// Argument Conversions
 struct command conversions1[] = {
 	{"exit", exitCMD},
 	{"help", help},
@@ -15,19 +16,21 @@ struct command conversions1[] = {
 	{NULL, NULL}
 };
 
+// Conversions for create argument
 struct command createConvert[] = {
 	{"shelf", createShelf},
 	{"book", createBook},
 	{NULL, NULL}
 };
 
+// Conversions for show argument
 struct command showConvert[] = {
 	{"shelf", showShelf},
 	{"shelves", showShelves},
 	{NULL, NULL}
 };
 
-
+// Calls conversion maps
 void executeCommand(char* cmdName, struct command* convertLayer)
 {
 	for (struct command* entry = convertLayer; entry->cmd != NULL; entry++)
@@ -41,11 +44,13 @@ void executeCommand(char* cmdName, struct command* convertLayer)
 	printf("Command not recognized, type \"help\" for a list of commands.\n");
 }
 
+// Clears screen
 void clear()
 {
 	system("clear");
 }
 
+// Exits shell
 void exitCMD()
 {
 	printf("Exiting..\n");
@@ -56,6 +61,7 @@ void exitCMD()
 	exit(1);  
 }
 
+// Prints argument help from file
 void help()
 {
 	FILE *file = fopen("commandHelp.txt", "r");
@@ -76,21 +82,25 @@ void help()
 	fclose(file);
 }
 
+// Calls create conversion map
 void create()
 {
 	executeCommand(userArgs[1], createConvert);
 }
 
+// Calls show conversion map
 void show()
 {
 	executeCommand(userArgs[1], showConvert);
 }
 
+// Calls addBook in bookshelf.c
 void createBook()
 {
 	addBook(userArgs[2], userArgs[3], &shelves[atoi(userArgs[4])-1]);
 }
 
+// Prints header information for all shelves
 void showShelves()
 {
 	for(int i = 0; i < SHELVES; i++)
@@ -102,11 +112,13 @@ void showShelves()
 	}
 }
 
+// Calls addShelf in bookshelf.c
 void createShelf()
 {
 	addShelf(userArgs[2], userArgs[3], atoi(userArgs[4])-1);	
 }
 
+// Calls displayShelf in bookshelf.c
 void showShelf()
 {
 	int n = atoi(userArgs[2]);
@@ -114,6 +126,7 @@ void showShelf()
 		displayShelf(shelves[n-1], n);
 }
 
+// Calls emptyShelf in bookshelf.c for a shelf slot
 void rm()
 {
 	emptyShelf(atoi(userArgs[1]));	

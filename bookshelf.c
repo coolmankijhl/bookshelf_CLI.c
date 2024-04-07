@@ -6,6 +6,7 @@
 #include "bookshelf.h"
 #include "global.h"
 
+// Parses input for the shell
 int main()
 {
 	char userInput[100];
@@ -37,6 +38,7 @@ int main()
 		
 }
 
+// Creates a shelf in a shelf slot
 void addShelf(char shelfName[], char username[], int n)
 {
 	if(shelfName[0] == '\0' || username[0] == '\0', !(n > -1 && n < SHELVES))
@@ -79,6 +81,7 @@ void addShelf(char shelfName[], char username[], int n)
 		printf("ERROR create shelf: failed creating shelf\n");
 }
 
+// Adds book in a shelf
 void addBook(char bookName[], char author[], stackNode** top)
 {
 	if(bookName[0] == '\0' || bookName[0] == '\0')
@@ -103,6 +106,7 @@ void addBook(char bookName[], char author[], stackNode** top)
 		printf("Successfully created book %s by %s\n", (*top)->bookName, (*top)->author);
 }
 
+// Displays shelf head and its following books
 void displayShelf(stackNode *top, int n)
 {
 	if(top == NULL)
@@ -121,6 +125,7 @@ void displayShelf(stackNode *top, int n)
 	free(ptr);
 }
 
+// Destroys shelf and frees memory from it and its books
 void emptyShelf(int n)
 {
 	struct stackNode *ptr = shelves[n-1];
