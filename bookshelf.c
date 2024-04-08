@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "stack.h"
 #include "global.h"
@@ -10,10 +11,6 @@
 char userArgs[SHELVES][100];
 struct stackNode* shelves[SHELVES];
 
-struct command {
-	char *cmd;
-	void (*function)();
-}; 
 
 // First argument conversions
 struct command conversions1[] = {
@@ -23,6 +20,7 @@ struct command conversions1[] = {
 	{"clear", clear},
 	{"show", show},
 	{"rm", rm},
+	{"save", save},
 	{NULL, NULL}
 };
 
@@ -40,15 +38,21 @@ struct command showConvert[] = {
 	{NULL, NULL}
 };
 
+struct command saveConvert[] = {
+	{"open", saveOpen},
+	{"make", saveMake},
+	{NULL, NULL}
+};
+
 // Parses input for the shell
 int main()
 {
 	char userInput[100];
 
-	printf("Welcome to Bookshell.c! Type \"help\" for a list of commands.\n");
+	printf("\nWelcome to \033[0;33mBookshell.c!\033[0m Type \"help\" for a list of commands.\n\n");
 	while(1)
 	{
-		printf("(bookshell)>>> ");
+		printf("\033[0;33m(bookshell)>>>\033[0m ");
 
 
 		fgets(userInput, sizeof(userInput), stdin);
@@ -103,12 +107,12 @@ void addBook(char bookName[], char author[], stackNode** top)
 {
 	if(bookName[0] == '\0' || bookName[0] == '\0')
 	{
-		printf("ERROR create book: no author or name arg\n");
+		printf("\033[0;31mERROR\033[0m create book: no author or name arg\n");
 		return;
 	}	
 	if(*top == NULL)
 	{
-		printf("ERROR create book: no shelf arg or shelf is doesn't exist\n");
+		printf("\033[0;31mERROR\033[0m create book: no shelf arg or shelf is doesn't exist\n");
 		return;
 	}
 	push(top);
@@ -120,7 +124,7 @@ void addBook(char bookName[], char author[], stackNode** top)
 	strcpy((*top)->author, author);
 
 	if(*top != NULL)
-		printf("Successfully created book %s by %s\n", (*top)->bookName, (*top)->author);
+		printf("Successfully created book \033[0;33m%s\033[0m by \033[0;33m%s\033[0m\n", (*top)->bookName, (*top)->author);
 }
 
 // Calls addShelf
@@ -134,23 +138,24 @@ void addShelf(char shelfName[], char username[], int n)
 {
 	if(shelfName[0] == '\0' || username[0] == '\0', !(n > -1 && n < SHELVES))
 	{
-		printf("ERROR create shelf failed: not enough arguments or invalid shelf number\n");
+		printf("\033[0;31mERROR\033[0m create shelf failed: not enough arguments or invalid shelf number\n");
 		return;
 	}
 
 	if(shelves[n] != NULL)
 	{
 		printf("A shelf already exists here, are you sure you want to overwrite it? Type 'overwrite' to continue, anything else to abort: ");
-		char *arg = (char*)malloc(50 * sizeof(char));
+		char *arg = (char*)malloc(10 * sizeof(char));
 		fgets(arg, sizeof(arg), stdin);
 		arg = strtok(arg, " \n");
 
-		if(!strcmp(arg, "overwrite\n"))
+		if(arg == NULL) {}
+		else if(!strcmp(arg, "overwrite\n\0"))
 		{
 			free(arg);
 			return;
 		}
-		free(shelves[n]);
+		destroy(shelves[n]);
 		free(arg);
 	}
 
@@ -167,9 +172,9 @@ void addShelf(char shelfName[], char username[], int n)
 	shelves[n] = bookshelf;
 
 	if(shelves[n] != NULL)
-		printf("Successfuly created shelf %s by %s in save slot %d\n", bookshelf->bookName, bookshelf->author, n+1);
+		printf("Successfuly created shelf \033[0;33m%s\033[0m by \033[0;33m%s\033[0m in save slot %d\033[0m\n", bookshelf->bookName, bookshelf->author, n+1);
 	else
-		printf("ERROR create shelf: failed creating shelf\n");
+		printf("\033[0;31mERROR\033[0m create shelf: failed creating shelf\n");
 }
 
 // Calls show conversion map
@@ -184,7 +189,7 @@ void showShelves()
 	for(int i = 0; i < SHELVES; i++)
 	{
 		if(shelves[i] != NULL)
-			printf("Shelf %d: %s by %s\n", i+1, shelves[i]->bookName, shelves[i]->author);
+			printf("Shelf %d: \033[0;33m%s\033[0m by \033[0;33m%s\033[0m\n", i+1, bottom(shelves[i])->bookName, bottom(shelves[i])->author);
 		else
 			printf("Shelf %d: SHELF SLOT EMPTY\n", i+1);
 	}
@@ -203,7 +208,7 @@ void displayShelf(stackNode *top, int n)
 {
 	if(top == NULL)
 	{
-		printf("ERROR show shelf %d failed: shelf slot empty\n", n);
+		printf("\033[0;31mERROR\033[0m show shelf %d failed: shelf slot empty\n", n);
 		return;
 	}
 
@@ -211,7 +216,7 @@ void displayShelf(stackNode *top, int n)
 
 	while(ptr != NULL)
 	{	
-		printf("(%d) | %s by %s |\n", ptr->index+1,  ptr->bookName, ptr->author);
+		printf("(%d) | \033[0;33m%s\033[0m by \033[0;33m%s\033[0m |\n", ptr->index+1,  ptr->bookName, ptr->author);
 		ptr = ptr->next;
 	}
 	free(ptr);
@@ -220,22 +225,16 @@ void displayShelf(stackNode *top, int n)
 // Calls emptyShelf for a shelf slot
 void rm()
 {
-	emptyShelf(atoi(userArgs[1]));	
-}
-
-// Destroys shelf and frees memory from it and its books
-void emptyShelf(int n)
-{
-	struct stackNode *ptr = shelves[n-1];
-	while (ptr != NULL)
-       	{
-		struct stackNode *nextPtr = ptr->next;
-		free(ptr->author);
-		free(ptr->bookName);
-		ptr = nextPtr;
+	int n = atoi(userArgs[1]);
+	if(n < SHELVES+1 && n > 0 && shelves[n-1] != NULL)
+	{
+		printf("Successfully removed \033[0;33mshelf %d\033[0m\n", n);
+		destroy(shelves[n-1]);
+		shelves[n-1] = NULL;
 	}
-	destroy(shelves[n-1]);
-	shelves[n-1] = NULL;
+	else
+		printf("\033[0;31mERROR\033[0m rm: shelf %d does not exist.\n", n);
+
 }
 
 // Displays help information from commandHelp.txt
@@ -244,7 +243,7 @@ void help()
 	FILE *file = fopen("commandHelp.txt", "r");
 	if(file == NULL)
 	{
-		printf("ERROR commandHelp.txt file not found.\n");
+		printf("\033[0;31mERROR\033[0m commandHelp.txt file not found.\n");
 		return;
 	}
 
@@ -265,7 +264,7 @@ void exitCMD()
 	printf("Exiting..\n");
 
 	for(int i = 0; i < SHELVES; i++)
-			emptyShelf(i);
+			destroy(shelves[i]);
 
 	exit(1);  
 }
@@ -274,4 +273,103 @@ void exitCMD()
 void clear()
 {
 	system("clear");
+}
+
+// Calls save conversion map
+void save()
+{
+	executeCommand(userArgs[1], saveConvert);
+}
+
+// Saves shelf state to a dynamically named .txt file, overwrites if file already exists
+void saveMake()
+{
+	FILE *file = openFile("w");
+	if(file == NULL)
+		return;
+	
+	for(int i = 0; i < SHELVES; i++)
+	{
+		if(shelves[i] != NULL)
+			fprintf(file, "%d\n", shelves[i]->index+1);
+		else
+			fprintf(file , "0\n");
+		reverse(&shelves[i]);
+	}
+
+	for(int i = 0; i < SHELVES; i++)
+	{
+		fprintf(file, "{\n");
+
+		if(shelves[i] != NULL)
+		{	
+			struct stackNode* ptr = shelves[i];
+			while(ptr != NULL)
+			{
+				fprintf(file, "%s %s\n", ptr->author, ptr->bookName);
+				ptr = ptr->next;
+			}
+		}
+		fprintf(file, "}\n");
+	}
+
+	for(int i = 0; i < SHELVES; i++)
+			reverse(&shelves[i]);
+
+	fclose(file);
+}
+
+// Overwrites current shelves state with data from file
+void saveOpen()
+{
+	for(int i = 0; i < SHELVES; i++)
+			destroy(shelves[i]);
+
+	FILE *file = openFile("r");
+	
+	if(file == NULL)
+		return;
+
+	int indexes[SHELVES];
+	for(int i = 0; i < SHELVES; i++)
+		fscanf(file, "%d ", &indexes[i]);
+
+	char buffer[3];
+	fgets(buffer, sizeof(buffer), file);
+	for(int i = 0; i < SHELVES; i++)
+	{
+		if(indexes[i] != 0)
+			shelves[i] = stack();
+			
+		for(int j = indexes[i]; j > 0; j--)
+		{
+			shelves[i]->bookName = (char*)malloc(100);
+			shelves[i]->author = (char*)malloc(100);
+			fscanf(file, "%s %s ", shelves[i]->author, shelves[i]->bookName);
+			push(&shelves[i]);
+		}
+		pop(&shelves[i]);
+		fgets(buffer, sizeof(buffer), file);
+		fgets(buffer, sizeof(buffer), file);
+	}
+
+	fclose(file);
+}
+
+FILE* openFile(char* wor)
+{	
+	char path[103] = "./saves/";
+	strcat(path, userArgs[2]);
+	FILE *file = fopen(path, wor);
+
+	if(file == NULL)
+	{
+		printf("\033[0;31mERROR\033[0m: could not open file.\n");
+		return NULL;
+	}
+	else
+	{
+		printf("Successfully found \033[0;33m%s\033[0m\n", userArgs[2]);
+		return file;
+	}
 }

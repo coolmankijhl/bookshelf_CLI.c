@@ -37,9 +37,12 @@ void destroy(struct stackNode *top)
 	while(top != NULL)
 	{
 		top = top->next;
+		free(behindTop->author);
+		free(behindTop->bookName);
 		free(behindTop);
 		behindTop = top;
 	}
+	free(top);
 }
 
 // Destroys/frees the node on top of the stack
@@ -61,3 +64,32 @@ int size(struct stackNode *top)
 {
 	return (top->index)+1;
 }
+
+// Returns the node on the bottom of the stack
+struct stackNode* bottom(struct stackNode *top)
+{
+	struct stackNode *bottom = top;
+	while(bottom->next != NULL && bottom != NULL)
+		bottom = bottom->next;
+
+	return bottom;
+}
+
+// Reverses a stack's order
+void reverse(struct stackNode **top)
+{
+	struct stackNode* prev = NULL;
+	struct stackNode* current = *top;
+	struct stackNode* next = NULL;
+
+	while (current != NULL)
+	{
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+
+	*top = prev;
+}
+

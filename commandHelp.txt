@@ -1,10 +1,20 @@
 BOOKSHELL.C
+Created by Michael Cartwright
 
 [help]: displays list commands.
+
 [exit]: exits bookshelf.c.
+
 [clear]: clears screen.
+
 [rm <shelf_num>]: removes shelf permanently.
+
 [create shelf <shelf_name> <owners_name> <shelf_slot>]: creates a shelf in a specified slot.
 [create book <book_name> <book_author> <shelf_slot>]: creates a book in a specified shelf slot given it exists.
+
 [show shelves]: displays header information for all shelves.
 [show shelf <shelf_slot>]: displasys header and all books for the shelf in order.
+
+[save make <file_name>]: creates a save file containing data from current shelves/books, if file already exists it will overwrite
+[save open <file_name>]: will open a save file and overwrite and current shelf/book data currently stored
+
