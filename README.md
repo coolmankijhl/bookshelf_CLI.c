@@ -5,5 +5,5 @@ To do:
   [X]  Create help command  
   [X]  Create commands for creating book/shelf nodes and viewing book/shelf nodes  
   [X]  Create save/open file system  
-  []  Create sorting command for shelves
-  []  Organize commands for ease of use
+  []  Create sorting command for shelves  
+  []  Organize commands for ease of use  
