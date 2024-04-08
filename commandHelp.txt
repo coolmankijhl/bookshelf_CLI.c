@@ -1,20 +1,40 @@
-BOOKSHELL.C
+BOOKSHELF_CLI.C
 Created by Michael Cartwright
 
-[help]: displays list commands.
+[help]
+  Displays list commands.
 
-[exit]: exits bookshelf.c.
+[quit] [q]:
+  Quits bookshelf_CLI.c
 
-[clear]: clears screen.
+[clear]:
+  Clears screen of text.
 
-[rm <shelf_num>]: removes shelf permanently.
+[save <file_name>]:
+  Saves current shelves state to file, creates file if it does not exist.
 
-[create shelf <shelf_name> <owners_name> <shelf_slot>]: creates a shelf in a specified slot.
-[create book <book_name> <book_author> <shelf_slot>]: creates a book in a specified shelf slot given it exists.
+[open <file_name]:
+  Overwrites current shelves state with information from file.
 
-[show shelves]: displays header information for all shelves.
-[show shelf <shelf_slot>]: displasys header and all books for the shelf in order.
+[b] [book]:
 
-[save make <file_name>]: creates a save file containing data from current shelves/books, if file already exists it will overwrite
-[save open <file_name>]: will open a save file and overwrite and current shelf/book data currently stored
+[book add <book_name> <author_name> <shelf_num>]:
+  Adds to book to top of shelf in slot <shelf_num>.
+[book rm <shelf_slot> <book_index>]:
+  Removes book in shelf slot <shelf_num> at <book_index>.
+[book show <shelf_num>]:
+  Shows header information contents of shelf slof <shelf_num>.
+
+[s] [shelf]:
+
+[shelf add <shelf_name> <shelf_owner> <shelf_num>]:
+  Adds shelf to shelf slot <shelf_num>.
+[shelf show]:
+  Shows header information for all shelf slots.
+[shelf rm <shelf_num>]:
+  Removes shelf at shelf slot <shelf_num>.
+[shelf sort <shelf_num>]:
+  Sorts shelf by author name.
+
+
 

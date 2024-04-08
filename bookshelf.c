@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <pthread.h>
+#include <termios.h>
 
 #include "stack.h"
 #include "global.h"
@@ -9,43 +10,43 @@
 #define SHELVES 5
 
 char userArgs[SHELVES][100];
+char history[10][100];
 struct stackNode* shelves[SHELVES];
-
 
 // First argument conversions
 struct command conversions1[] = {
-	{"exit", exitCMD},
+	{"quit", quit},
+	{"q", quit},
 	{"help", help},
-	{"create", create},
-	{"clear", clear},
-	{"show", show},
-	{"rm", rm},
+	{"book", book},
+	{"b", book},
+	{"shelf", shelf},
+	{"s", shelf},
 	{"save", save},
+	{"open", open},
+	{"clear", clear},
 	{NULL, NULL}
 };
 
-// Conversions for create argument
-struct command createConvert[] = {
-	{"shelf", createShelf},
-	{"book", createBook},
+// Conversions for book argument
+struct command bookConvert[] = {
+	{"add", addBook},
+	{"rm", rmBook},
+	{"show", showBooks},
 	{NULL, NULL}
 };
 
 // Conversions for show argument
-struct command showConvert[] = {
-	{"shelf", showShelf},
-	{"shelves", showShelves},
-	{NULL, NULL}
-};
-
-struct command saveConvert[] = {
-	{"open", saveOpen},
-	{"make", saveMake},
+struct command shelfConvert[] = {
+	{"add", addShelf},
+	{"show", showShelves},
+	{"rm", rmShelf},
+	{"sort", sortShelf},
 	{NULL, NULL}
 };
 
 // Parses input for the shell
-int main()
+ main()
 {
 	char userInput[100];
 
@@ -69,9 +70,7 @@ int main()
 
 		strcpy(userInput, "");
 		for(int i = 0; i < sizeof(userArgs) / sizeof(userArgs[0]); i++)
-			strcpy(userArgs[i], "");
-
-			
+			strcpy(userArgs[i], "");	
 	}
 		
 }
@@ -90,21 +89,26 @@ void executeCommand(char* cmdName, struct command* convertLayer)
 	printf("Command not recognized, type \"help\" for a list of commands.\n");
 }
 
-// Calls create conversion map
-void create()
+void book()
 {
-	executeCommand(userArgs[1], createConvert);
+	executeCommand(userArgs[1], bookConvert);
 }
 
-// Calls addBook
-void createBook()
+void shelf()
 {
-	addBook(userArgs[2], userArgs[3], &shelves[atoi(userArgs[4])-1]);
+	executeCommand(userArgs[1], shelfConvert);
 }
 
 // Adds book in a shelf
-void addBook(char bookName[], char author[], stackNode** top)
+void addBook()
 {
+	char *bookName = "";
+	strcpy(bookName, userArgs[2]);
+	char *author = "";
+	strcpy(author, userArgs[3]);
+	struct stackNode** top = &shelves[atoi(userArgs[4])-1];
+
+
 	if(bookName[0] == '\0' || bookName[0] == '\0')
 	{
 		printf("\033[0;31mERROR\033[0m create book: no author or name arg\n");
@@ -127,15 +131,15 @@ void addBook(char bookName[], char author[], stackNode** top)
 		printf("Successfully created book \033[0;33m%s\033[0m by \033[0;33m%s\033[0m\n", (*top)->bookName, (*top)->author);
 }
 
-// Calls addShelf
-void createShelf()
-{
-	addShelf(userArgs[2], userArgs[3], atoi(userArgs[4])-1);	
-}
-
 // Creates a shelf in a shelf slot
-void addShelf(char shelfName[], char username[], int n)
+void addShelf()
 {
+	char shelfName[10];
+	strcpy(shelfName, userArgs[2]);
+	char username[10];
+	strcpy(username, userArgs[2]);
+	int n = atoi(userArgs[4])-1;
+
 	if(shelfName[0] == '\0' || username[0] == '\0', !(n > -1 && n < SHELVES))
 	{
 		printf("\033[0;31mERROR\033[0m create shelf failed: not enough arguments or invalid shelf number\n");
@@ -177,11 +181,6 @@ void addShelf(char shelfName[], char username[], int n)
 		printf("\033[0;31mERROR\033[0m create shelf: failed creating shelf\n");
 }
 
-// Calls show conversion map
-void show()
-{
-	executeCommand(userArgs[1], showConvert);
-}
 
 // Prints header information for all shelves
 void showShelves()
@@ -195,37 +194,35 @@ void showShelves()
 	}
 }
 
-// Calls displayShelf if arg is [1, SHELVES] inclusive
-void showShelf()
+// Displays shelf head, its following books, and their respective information
+void showBooks()
 {
 	int n = atoi(userArgs[2]);
+	struct stackNode *top = shelves[n-1];
+
 	if(n < SHELVES+1 && n > 0)
-		displayShelf(shelves[n-1], n);
-}
-
-// Displays shelf head, its following books, and their respective information
-void displayShelf(stackNode *top, int n)
-{
-	if(top == NULL)
 	{
-		printf("\033[0;31mERROR\033[0m show shelf %d failed: shelf slot empty\n", n);
-		return;
-	}
+		if(top == NULL)
+		{
+			printf("\033[0;31mERROR\033[0m show shelf %d failed: shelf slot empty\n", n);
+			return;
+		}
 
-	struct stackNode* ptr = top;
+		struct stackNode* ptr = top;
 
-	while(ptr != NULL)
-	{	
-		printf("(%d) | \033[0;33m%s\033[0m by \033[0;33m%s\033[0m |\n", ptr->index+1,  ptr->bookName, ptr->author);
-		ptr = ptr->next;
+		while(ptr != NULL)
+		{	
+			printf("(%d) | \033[0;33m%s\033[0m by \033[0;33m%s\033[0m |\n", ptr->index+1,  ptr->bookName, ptr->author);
+			ptr = ptr->next;
+		}
+		free(ptr);
 	}
-	free(ptr);
 }
 
 // Calls emptyShelf for a shelf slot
-void rm()
+void rmShelf()
 {
-	int n = atoi(userArgs[1]);
+	int n = atoi(userArgs[1])+1;
 	if(n < SHELVES+1 && n > 0 && shelves[n-1] != NULL)
 	{
 		printf("Successfully removed \033[0;33mshelf %d\033[0m\n", n);
@@ -234,6 +231,11 @@ void rm()
 	}
 	else
 		printf("\033[0;31mERROR\033[0m rm: shelf %d does not exist.\n", n);
+
+}
+
+void rmBook()
+{
 
 }
 
@@ -259,9 +261,9 @@ void help()
 }
 
 // exits bookshell.c
-void exitCMD()
+void quit()
 {
-	printf("Exiting..\n");
+	printf("Terminating..\n");
 
 	for(int i = 0; i < SHELVES; i++)
 			destroy(shelves[i]);
@@ -275,14 +277,8 @@ void clear()
 	system("clear");
 }
 
-// Calls save conversion map
-void save()
-{
-	executeCommand(userArgs[1], saveConvert);
-}
-
 // Saves shelf state to a dynamically named .txt file, overwrites if file already exists
-void saveMake()
+void save()
 {
 	FILE *file = openFile("w");
 	if(file == NULL)
@@ -320,7 +316,7 @@ void saveMake()
 }
 
 // Overwrites current shelves state with data from file
-void saveOpen()
+void open()
 {
 	for(int i = 0; i < SHELVES; i++)
 			destroy(shelves[i]);
@@ -359,7 +355,7 @@ void saveOpen()
 FILE* openFile(char* wor)
 {	
 	char path[103] = "./saves/";
-	strcat(path, userArgs[2]);
+	strcat(path, userArgs[1]);
 	FILE *file = fopen(path, wor);
 
 	if(file == NULL)
@@ -369,7 +365,12 @@ FILE* openFile(char* wor)
 	}
 	else
 	{
-		printf("Successfully found \033[0;33m%s\033[0m\n", userArgs[2]);
+		printf("Successfully found \033[0;33m%s\033[0m\n", userArgs[1]);
 		return file;
 	}
+}
+
+void sortShelf()
+{
+
 }

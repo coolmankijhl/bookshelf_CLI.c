@@ -4,22 +4,21 @@ struct command {
 	void (*function)();
 };
 
-void addBook(char bookName[], char author[], stackNode** top);
-void displayShelf(stackNode *top, int n);
-void addShelf(char shelfName[], char username[], int n);
-void executeCommand(char* cmdName, struct command *convertLayer);
-FILE*  openFile(char* wor);
-
-void save();
-void saveMake();
-void saveOpen();
-void clear();
-void exitCMD();
-void create();
-void help();
-void show();
-void rm();
-void createBook();
-void createShelf();
-void showShelf();
+void executeCommand(char* cmdName, struct command* convertLayer);
+void book();
+void shelf();
+void addBook();
+void addShelf();
 void showShelves();
+void showBooks();
+void rmShelf();
+void rmBook();
+void help();
+void quit();
+void clear();
+void save();
+void open();
+FILE* openFile(char* wor);
+void sortShelf();
+
+
