@@ -8,4 +8,5 @@ To do:
   []  Create sorting command for shelves  
   [X]  Optimize code  
   [X]  Organize commands for ease of use 
-  [X]  Create way to view available files
+  [X]  Create way to view available files  
+  []  Build something similar to ```history``` command in Linux
