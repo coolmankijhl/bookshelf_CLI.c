@@ -9,4 +9,5 @@ To do:
   [X]  Optimize code  
   [X]  Organize commands for ease of use 
   [X]  Create way to view available files  
-  []  Build something similar to ```history``` command in Linux
+  []  Build something similar to ```history``` command in Linux  
+  []  Arrow key functionality to move the caret left and right, and to access command history up/down.
