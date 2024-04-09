@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <sys/stat.h>
 
 #include "stack.h"
 #include "global.h"
@@ -45,7 +46,8 @@ struct command shelfConvert[] = {
 // Parses input for the shell
 void main()
 {
-	char userInput[1000];
+	char userInput[1000];	
+	mkdir("./saves/", 0700);
 
 	printf("Welcome to \033[0;33mBookshelf_CLI.c!\033[0m Type \"help\" for a list of commands.\nCreated by Michael Cartwright\n\n");
 	while(1)
