@@ -4,28 +4,29 @@ Created by Michael Cartwright
 [help]
   Displays list commands.
 
-[quit] [q]:
-  Quits bookshelf_CLI.c
+[quit] [q] [exit]:
+  Terminates bookshelf_CLI.c
 
-[clear]:
+[clean]:
   Clears screen of text.
 
-[save <file_name>]:
+[savef <file_name>]:
   Saves current shelves state to file, creates file if it does not exist.
 
-[open <file_name]:
+[openf <file_name]:
   Overwrites current shelves state with information from file.
 
-[b] [book]:
+[showf]:
+  Shows available files in saves folder.
+
+[bk] [book]:
 
 [book add <book_name> <author_name> <shelf_num>]:
   Adds to book to top of shelf in slot <shelf_num>.
-[book rm <shelf_slot> <book_index>]:
-  Removes book in shelf slot <shelf_num> at <book_index>.
 [book show <shelf_num>]:
   Shows header information contents of shelf slof <shelf_num>.
 
-[s] [shelf]:
+[shelf]:
 
 [shelf add <shelf_name> <shelf_owner> <shelf_num>]:
   Adds shelf to shelf slot <shelf_num>.
@@ -33,8 +34,4 @@ Created by Michael Cartwright
   Shows header information for all shelf slots.
 [shelf rm <shelf_num>]:
   Removes shelf at shelf slot <shelf_num>.
-[shelf sort <shelf_num>]:
-  Sorts shelf by author name.
-
-
 

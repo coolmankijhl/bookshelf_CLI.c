@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef stack_h
+#define stack_h
+
 // Node definition
 typedef struct stackNode
 {
@@ -51,18 +54,33 @@ void pop(struct stackNode **top)
 	if(*top == NULL)
 		return;
 	
-	struct stackNode *temp = *top;
+	struct stackNode **temp = top;
 	if((*top)->next != NULL)
 		*top = (*top)->next;
 	else
 		free((*top));
-	free(temp);
+	free(*temp);
 }
 
 // Returns the index of the top of the stack plus one
 int size(struct stackNode *top)
 {
-	return (top->index)+1;
+	if(top == NULL)
+		return 0;
+
+	int max = 0;
+	int hold;
+	struct stackNode *ptr = top;
+
+	while(ptr != NULL)
+	{
+		hold = ptr->index;
+		if(hold > max)
+			max = hold;
+		ptr = ptr->next;
+	}
+
+	return max+1;
 }
 
 // Returns the node on the bottom of the stack
@@ -93,3 +111,17 @@ void reverse(struct stackNode **top)
 	*top = prev;
 }
 
+// Resets the indexes of the stack
+void reindex(struct stackNode **top, int max_index)
+{
+	struct stackNode* ptr = *top;
+
+	while(ptr != NULL)
+	{
+		ptr->index = max_index-1;
+		ptr = ptr->next;
+		max_index--;
+	}	
+}
+
+#endif

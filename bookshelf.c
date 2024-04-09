@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
-#include <termios.h>
+#include <dirent.h>
 
 #include "stack.h"
 #include "global.h"
@@ -10,28 +9,27 @@
 #define SHELVES 5
 
 char userArgs[SHELVES][100];
-char history[10][100];
 struct stackNode* shelves[SHELVES];
 
 // First argument conversions
 struct command conversions1[] = {
 	{"quit", quit},
 	{"q", quit},
+	{"exit", quit},
 	{"help", help},
 	{"book", book},
-	{"b", book},
+	{"bk", book},
 	{"shelf", shelf},
-	{"s", shelf},
-	{"save", save},
-	{"open", open},
-	{"clear", clear},
+	{"savef", savef},
+	{"openf", openf},
+	{"showf", showf},
+	{"clean", clean},
 	{NULL, NULL}
 };
 
 // Conversions for book argument
 struct command bookConvert[] = {
 	{"add", addBook},
-	{"rm", rmBook},
 	{"show", showBooks},
 	{NULL, NULL}
 };
@@ -41,23 +39,22 @@ struct command shelfConvert[] = {
 	{"add", addShelf},
 	{"show", showShelves},
 	{"rm", rmShelf},
-	{"sort", sortShelf},
 	{NULL, NULL}
 };
 
 // Parses input for the shell
- main()
+void main()
 {
-	char userInput[100];
+	char userInput[1000];
 
-	printf("\nWelcome to \033[0;33mBookshell.c!\033[0m Type \"help\" for a list of commands.\n\n");
+	printf("Welcome to \033[0;33mBookshelf_CLI.c!\033[0m Type \"help\" for a list of commands.\nCreated by Michael Cartwright\n\n");
 	while(1)
 	{
-		printf("\033[0;33m(bookshell)>>>\033[0m ");
+		printf("\033[0;33m(bookshelf)>>>\033[0m ");
 
 
 		fgets(userInput, sizeof(userInput), stdin);
-			
+
 		char *token = strtok(userInput, " \n");
 
 		for(int i = 0; i < SHELVES && token != NULL; i++)
@@ -75,6 +72,17 @@ struct command shelfConvert[] = {
 		
 }
 
+// Checks if there are a valid number of arguments in statement
+int argsCheck(int n)
+{
+	if(userArgs[n][0] == '\0')
+	{
+		printf("\033[0;31mERROR\033[0m %s: missing args\n", userArgs[0]);	
+		return 0;
+	}
+	return 1;
+}
+
 // Calls conversion maps
 void executeCommand(char* cmdName, struct command* convertLayer)
 {
@@ -89,36 +97,39 @@ void executeCommand(char* cmdName, struct command* convertLayer)
 	printf("Command not recognized, type \"help\" for a list of commands.\n");
 }
 
+// Calls book conversion map
 void book()
 {
+	if(!argsCheck(1))
+		return;
 	executeCommand(userArgs[1], bookConvert);
 }
 
+// Calls shelf conversion map
 void shelf()
 {
+	if(!argsCheck(1))
+		return;
 	executeCommand(userArgs[1], shelfConvert);
 }
 
 // Adds book in a shelf
 void addBook()
 {
-	char *bookName = "";
-	strcpy(bookName, userArgs[2]);
-	char *author = "";
-	strcpy(author, userArgs[3]);
-	struct stackNode** top = &shelves[atoi(userArgs[4])-1];
-
-
-	if(bookName[0] == '\0' || bookName[0] == '\0')
-	{
-		printf("\033[0;31mERROR\033[0m create book: no author or name arg\n");
+	if(!argsCheck(4))
 		return;
-	}	
+
+	struct stackNode** top = &shelves[atoi(userArgs[4])-1];
 	if(*top == NULL)
 	{
-		printf("\033[0;31mERROR\033[0m create book: no shelf arg or shelf is doesn't exist\n");
+		printf("\033[0;31mERROR\033[0m book add: shelf %d doesn't exist\n", atoi(userArgs[4]));
 		return;
 	}
+
+	char bookName[50], author[50];
+	strcpy(bookName, userArgs[2]);
+	strcpy(author, userArgs[3]);
+
 	push(top);
 
 	(*top)->bookName = (char*)malloc(sizeof(char) * (strlen(bookName) + 1));
@@ -127,22 +138,26 @@ void addBook()
 	strcpy((*top)->bookName, bookName);
 	strcpy((*top)->author, author);
 
-	if(*top != NULL)
+	if(*top != NULL && (*top)->bookName != NULL && (*top)->author)
 		printf("Successfully created book \033[0;33m%s\033[0m by \033[0;33m%s\033[0m\n", (*top)->bookName, (*top)->author);
+	else	
+		printf("\033[0;31mERROR\033[0m add book: problem creating shelf\n");
 }
 
 // Creates a shelf in a shelf slot
 void addShelf()
 {
-	char shelfName[10];
+	if(!argsCheck(4))
+		return;
+	
+	char shelfName[50], username[50];
 	strcpy(shelfName, userArgs[2]);
-	char username[10];
 	strcpy(username, userArgs[2]);
-	int n = atoi(userArgs[4])-1;
+	int n = atoi(userArgs[4]);
 
-	if(shelfName[0] == '\0' || username[0] == '\0', !(n > -1 && n < SHELVES))
+	if(!(n > 0 && n < SHELVES))
 	{
-		printf("\033[0;31mERROR\033[0m create shelf failed: not enough arguments or invalid shelf number\n");
+		printf("\033[0;31mERROR\033[0m create shelf failed: invalid shelf number\n");
 		return;
 	}
 
@@ -169,14 +184,15 @@ void addShelf()
 
 	bookshelf->bookName = (char*)malloc(sizeof(char) * (strlen(shelfName) + 1));
 	bookshelf->author = (char*)malloc(sizeof(char) * (strlen(username) + 1));
+	bookshelf->index = 0;
 
 	strcpy(bookshelf->bookName, shelfName);
 	strcpy(bookshelf->author, username);
 
-	shelves[n] = bookshelf;
+	shelves[n-1] = bookshelf;
 
-	if(shelves[n] != NULL)
-		printf("Successfuly created shelf \033[0;33m%s\033[0m by \033[0;33m%s\033[0m in save slot %d\033[0m\n", bookshelf->bookName, bookshelf->author, n+1);
+	if(shelves[n-1] != NULL)
+		printf("Successfuly created shelf \033[0;33m%s\033[0m by \033[0;33m%s\033[0m in save slot %d\033[0m\n", bookshelf->bookName, bookshelf->author, n);
 	else
 		printf("\033[0;31mERROR\033[0m create shelf: failed creating shelf\n");
 }
@@ -197,6 +213,9 @@ void showShelves()
 // Displays shelf head, its following books, and their respective information
 void showBooks()
 {
+	if(!argsCheck(2))
+		return;	
+
 	int n = atoi(userArgs[2]);
 	struct stackNode *top = shelves[n-1];
 
@@ -212,17 +231,20 @@ void showBooks()
 
 		while(ptr != NULL)
 		{	
-			printf("(%d) | \033[0;33m%s\033[0m by \033[0;33m%s\033[0m |\n", ptr->index+1,  ptr->bookName, ptr->author);
+			printf("(%d) | \033[0;33m%s\033[0m by \033[0;33m%s\033[0m |\n", ptr->index,  ptr->bookName, ptr->author);
 			ptr = ptr->next;
 		}
 		free(ptr);
 	}
 }
 
-// Calls emptyShelf for a shelf slot
+// Removes a shelf from shelf slot n
 void rmShelf()
 {
-	int n = atoi(userArgs[1])+1;
+	if(!argsCheck(2))
+		return;
+
+	int n = atoi(userArgs[2]);
 	if(n < SHELVES+1 && n > 0 && shelves[n-1] != NULL)
 	{
 		printf("Successfully removed \033[0;33mshelf %d\033[0m\n", n);
@@ -230,12 +252,7 @@ void rmShelf()
 		shelves[n-1] = NULL;
 	}
 	else
-		printf("\033[0;31mERROR\033[0m rm: shelf %d does not exist.\n", n);
-
-}
-
-void rmBook()
-{
+		printf("\033[0;31mERROR\033[0m shelf rm: shelf %d does not exist.\n", n);
 
 }
 
@@ -260,7 +277,7 @@ void help()
 	fclose(file);
 }
 
-// exits bookshell.c
+// Terminates bookshelf_CLI.c
 void quit()
 {
 	printf("Terminating..\n");
@@ -271,15 +288,24 @@ void quit()
 	exit(1);  
 }
 
-// Clears screen
-void clear()
+// Cleans screen
+void clean()
 {
 	system("clear");
 }
 
 // Saves shelf state to a dynamically named .txt file, overwrites if file already exists
-void save()
-{
+void savef()
+{	
+	if(!argsCheck(1))
+		return;
+
+	if(userArgs[1][0] == '.')
+	{
+		printf("\033[0;31mERROR\033[0m savef: file name cannot start with a '.'\n");
+		return;
+	}
+
 	FILE *file = openFile("w");
 	if(file == NULL)
 		return;
@@ -316,8 +342,17 @@ void save()
 }
 
 // Overwrites current shelves state with data from file
-void open()
+void openf()
 {
+	if(!argsCheck(1))
+		return;
+
+	if(userArgs[1][0] == '.')
+	{
+		printf("\033[0;31mERROR\033[0m openf: cannot open files that start with a '.'\n");
+		return;
+	}
+
 	for(int i = 0; i < SHELVES; i++)
 			destroy(shelves[i]);
 
@@ -352,6 +387,7 @@ void open()
 	fclose(file);
 }
 
+// Opens and names file
 FILE* openFile(char* wor)
 {	
 	char path[103] = "./saves/";
@@ -370,7 +406,21 @@ FILE* openFile(char* wor)
 	}
 }
 
-void sortShelf()
+// Displays all avaliable files in saves directory
+void showf()
 {
+	DIR *d = opendir("./saves");
+	struct dirent *dir;
 
+	if(d)
+	{
+		printf("Files: ");
+		while((dir = readdir(d)) != NULL)
+		{	
+			if(dir->d_name[0] != '.')
+				printf("%s ", dir->d_name);
+		}
+		printf("\n");
+		closedir(d);
+	}
 }
