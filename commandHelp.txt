@@ -5,7 +5,7 @@ Created by Michael Cartwright
   Displays list commands.
 
 [quit] [q] [exit]:
-  Terminates bookshelf_CLI.c
+  Terminates bookshell.c
 
 [clean]:
   Clears screen of text.
