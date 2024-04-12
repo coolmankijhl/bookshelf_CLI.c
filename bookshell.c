@@ -3,6 +3,8 @@
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #include "stack.h"
 #include "global.h"
@@ -46,19 +48,28 @@ struct command shelfConvert[] = {
 // Parses input for the shell
 void main()
 {
-	char userInput[1000];	
+	char *userInput;	
 	mkdir("./saves/", 0700);
 
-	printf("Welcome to \033[0;33mBookshelf_CLI.c!\033[0m Type \"help\" for a list of commands.\nCreated by Michael Cartwright\n\n");
+	char history_file[] = "command_history";
+	rl_readline_name = "SHELLIN LIKE A VELLIN!";
+	using_history();
+	stifle_history(100);
+
+	printf("Welcome to \033[0;33mBookshell.c!\033[0m Type \"help\" for a list of commands.\nCreated by Michael Cartwright\n\n");
 	while(1)
 	{
-		printf("\033[0;33m(bookshelf)>>>\033[0m ");
+		userInput = readline("\033[0;33m(bookshell)>>>\033[0m ");
 
+		//fgets(userInput, sizeof(userInput), stdin);
 
-		fgets(userInput, sizeof(userInput), stdin);
+		if(strlen(userInput) > 0)
+		{
+			add_history(userInput);
+			write_history("cmdHistory");
+		}
 
 		char *token = strtok(userInput, " \n");
-
 		for(int i = 0; i < SHELVES && token != NULL; i++)
 		{	
 			strcpy(userArgs[i], token);
@@ -71,7 +82,6 @@ void main()
 		for(int i = 0; i < sizeof(userArgs) / sizeof(userArgs[0]); i++)
 			strcpy(userArgs[i], "");	
 	}
-		
 }
 
 // Checks if there are a valid number of arguments in statement
@@ -286,6 +296,8 @@ void quit()
 
 	for(int i = 0; i < SHELVES; i++)
 			destroy(shelves[i]);
+
+	rl_clear_history();
 
 	exit(1);  
 }
