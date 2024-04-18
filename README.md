@@ -6,7 +6,7 @@ You can also save the current data to a save file, where it can be accessed late
 ## To Compile and Run
 
 This project depends on the readline library. On debian-based systems, this can be installed with:  
-```sudo apt-get install libreadline8 libreadline8-dev```
+```sudo apt-get install libreadline6 libreadline6-dev```
 
 To compile and run:  
 ```gcc bookshell.c -lreadline && ./a.out```<br><br>
