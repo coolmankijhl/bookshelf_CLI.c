@@ -5,11 +5,9 @@ You can also save the current data to a save file, where it can be accessed late
 
 ## To Compile and Run
 
-This project depends on the readline library. On debian-based systems, this can be installed with:  
-```sudo apt-get install libreadline6 libreadline6-dev```
-
+This project has no dependencies.  
 To compile and run:  
-```gcc bookshell.c -lreadline && ./a.out```<br><br>
+```gcc bookshell.c && ./a.out```<br><br>
 
 # Todo List:  
   [X]  Create command line with basic commands.  
@@ -20,5 +18,3 @@ To compile and run:
   [X]  Optimize code.  
   [X]  Organize commands for ease of use. 
   [X]  Create way to view available files.  
-  [X]  Arrow key functionality to move the caret left and right, and to access command history up/down.  
-  [] Fix memory loss caused by readline library.
