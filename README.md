@@ -7,7 +7,7 @@ You can also save the current data to a save file, where it can be accessed late
 
 This project has no dependencies.  
 To compile and run:  
-```gcc bookshell.c && ./a.out```<br><br>
+```gcc bookshell.c && ./a.out```<br>
 
 # Todo List:  
   [X]  Create command line with basic commands.  
